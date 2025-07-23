@@ -30,7 +30,6 @@ if GEMINI_API_KEY:
         genai.configure(api_key=GEMINI_API_KEY)
         model_name_to_check = 'gemini-1.5-pro-latest'
         gemini_model = genai.GenerativeModel(model_name_to_check)
-        # Lakukan panggilan percobaan sederhana untuk validasi
         gemini_model.generate_content("test", generation_config={"temperature": 0.0})
         print(f"✅ Gemini API berhasil dikonfigurasi dengan model: {model_name_to_check}.")
     except Exception as e:
@@ -121,7 +120,24 @@ def generate_content_with_gemini(theme, main_points, content_type, competitor_ti
         return None
     print("-> Menggunakan Gemini API...")
     context_summary = f"Tema Utama Video: \"{theme}\"\nJenis Konten: {content_type.capitalize()}\nPoin Utama: {', '.join(main_points)}\nKata Kunci Relevan: {', '.join(top_keywords[:10])}\nContoh Judul Kompetitor: {'; '.join(competitor_titles[:3])}"
-    prompt = f"""Anda adalah ahli strategi konten YouTube. Berdasarkan data berikut, buat metadata optimal dalam format JSON yang valid, tanpa teks tambahan sebelum atau sesudah JSON.\n\n{context_summary}\n\nFormat JSON:\n{{\n  \"titles\": [\"Judul 1\", \"Judul 2\", \"Judul 3\", \"Judul 4\", \"Judul 5\"],\n  \"description\": \"Deskripsi lengkap (sekitar 150 kata) yang mengelaborasi poin utama...\",\n  \"tags\": [\"tag1\", \"tag2\", \"tag3\"]\n}}"""
+    
+    # --- PERUBAHAN DI SINI ---
+    prompt = f"""
+    Anda adalah ahli strategi konten YouTube. Berdasarkan data berikut, buat metadata optimal dalam format JSON yang valid, tanpa teks tambahan sebelum atau sesudah JSON.
+
+    {context_summary}
+
+    PENTING: Seluruh output (judul, deskripsi, dan tag) HARUS dalam Bahasa Indonesia.
+
+    Format JSON:
+    {{
+      "titles": ["Judul 1", "Judul 2", "Judul 3", "Judul 4", "Judul 5"],
+      "description": "Deskripsi lengkap (sekitar 150 kata) yang mengelaborasi poin utama...",
+      "tags": ["tag1", "tag2", "tag3"]
+    }}
+    """
+    # --- AKHIR PERUBAHAN ---
+
     try:
         response = gemini_model.generate_content(prompt)
         clean_response_text = response.text.strip().replace("```json", "").replace("```", "")
